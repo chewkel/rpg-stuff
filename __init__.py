@@ -1003,7 +1003,25 @@ async def guild(ctx):
     info = fileIO("guilds/Hydrax.json" ,"load")
     # await ctx.send(info["name"])
     
-
+@client.command()
+async def nstats(ctx,user: discord.Member = None):
+    if user == None:
+        user = ctx.author
+    info = fileIO("players/{}/info.json".format(user.id), "load")
+    stats = Image.open("stats template.png")
+    asset = user.avatar_url_as(size = 64)
+    
+    data = BytesIO(await asset.read())
+    pfp = Image.open(data)
+    
+       
+    
+            # "name": author.name,
+            # "race": "None",
+            # "class": "None",
+            # "health": 100,
+            # "lvl": 1,
+            # "gold": 0,
 # keep_alive()
 client.run(config_location["Token"])
 # client.run('Nzc4MjgzNjYyNzQ2ODQ1MTg0.X7PvJQ.k9duIH-Qti9SXgt6w8nATA609dA') 
