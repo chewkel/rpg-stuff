@@ -1007,21 +1007,56 @@ async def guild(ctx):
 async def nstats(ctx,user: discord.Member = None):
     if user == None:
         user = ctx.author
-    info = fileIO("players/{}/info.json".format(user.id), "load")
     stats = Image.open("stats template.png")
     asset = user.avatar_url_as(size = 64)
-    
+    fontsize = 38
+    font = ImageFont.truetype("arial.ttf", fontsize)
+    deathcountsize = ImageFont.truetype("arial.ttf", 35)
+    weaponsize = ImageFont.truetype("arial.ttf", 29)
     data = BytesIO(await asset.read())
     pfp = Image.open(data)
+    pfp = pfp.resize((190,190))
+    stats.paste(pfp, ((75,48)))
+    stats.save("stats template copy1.png")
+    draw = ImageDraw.Draw((stats))
+    name = "Name: " + info["name"]
+    cclass = "Class: " + info["class"]
+    race = "Race: " + info["race"]
+    health = "Health: " + str(info["health"])
+    lvl = "Lvl: "+ str(info["lvl"])
+    gold = "Gold: "+ str(info["gold"])
+    death = "Deathcount:  " + str(info["deaths"])
+    weapon = "Equipped: \n" + info["equip"]
+    title = "Title: " + info["title"]
+    exp = "Exp: " + str(info["exp"])
+    draw.text((338,54), name,(0,0,0,),font = font)
+    draw.text((332,149), cclass,(0,0,0,),font = font)    
+    draw.text((634,50),race,(0,0,0,),font = font)
+    draw.text((334,263),health,(0,0,0),font = font)
+    draw.text((634,263),lvl,(0,0,0),font = font)
+    draw.text((335,368),gold,(0,0,0),font = font)
+    draw.text((634,354),weapon,(0,0,0),font = weaponsize)
+    draw.text((642,448),death,(0,0,0),font = deathcountsize)
+    draw.text((640,149),title,(0,0,0),font = font)
+    draw.text((332,460),exp,(0,0,0),font=font)
+    stats.save("stats template copy1.png")
+    await ctx.send(file = discord.File("stats template copy1.png"))  
     
        
     
             # "name": author.name,
-            # "race": "None",
+            # "race": "None",xxzxz
             # "class": "None",
             # "health": 100,
             # "lvl": 1,
             # "gold": 0,
+            
+@client.command()
+async def challenge(ctx):
+    author = ctx.author
+    message = ctx.author
+    info = fileIO("players/{}/info.json".format(author.id), "load")
+    
 # keep_alive()
 client.run(config_location["Token"])
 # client.run('Nzc4MjgzNjYyNzQ2ODQ1MTg0.X7PvJQ.k9duIH-Qti9SXgt6w8nATA609dA') 
