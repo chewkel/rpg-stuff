@@ -23,6 +23,7 @@ import pickle
 # translator = googletrans.Translator()
 import sys
 from PIL import Image, ImageDraw, ImageFont
+from easy_pil import *
 
 config_location = fileIO("config/config.json", "load")
 Shards = config_location["Shards"]
@@ -1007,6 +1008,7 @@ async def guild(ctx):
 async def nstats(ctx,user: discord.Member = None):
     if user == None:
         user = ctx.author
+    info = fileIO("players/{}/info.json".format(user.id), "load")
     stats = Image.open("stats template.png")
     asset = user.avatar_url_as(size = 64)
     fontsize = 38
@@ -1051,11 +1053,28 @@ async def nstats(ctx,user: discord.Member = None):
             # "lvl": 1,
             # "gold": 0,
             
-@client.command()
-async def challenge(ctx):
-    author = ctx.author
-    message = ctx.author
-    info = fileIO("players/{}/info.json".format(author.id), "load")
+# @client.command()
+# async def challenge(ctx):
+#     author = ctx.author
+#     message = ctx.author
+#     info = fileIO("players/{}/info.json".format(author.id), "load")
+#     if info["class"] == "None" and info["race"] == "None":
+#         await ctx.send("Please start your player using `{}start`".format(Prefix))
+#         return
+#     def pred(m):
+#         return m.author == message.author and m.channel == message.channel
+#     answer2 = await client.wait_for("message", check=pred)
+#     response = ["Yes","yes","No","no"]
+#     match response[""]:
+#         case "Yes":
+#             await ctx.send("e")
+#         case "yes":
+#             await ctx.send("e")
+#         case "No":
+#             await ctx.send("e")
+#         case "no":
+#             await ctx.send("e")
+
     
 # keep_alive()
 client.run(config_location["Token"])
