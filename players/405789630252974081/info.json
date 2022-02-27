@@ -18,7 +18,7 @@
     "hp_potions" : 0,
     "in_dungeon" : "False",
     "in_party" : [],
-    "inguild" : "None",
+    "inguild" : false,
     "inventory" : [],
     "keys" : 0,
     "location" : "Golden Temple",

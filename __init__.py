@@ -8,7 +8,8 @@ import random
 from discord import Member
 # from keep_alive import keep_alive
 import os
-import datetime
+import os.path,time
+from datetime import datetime
 import time
 import threading
 from random import choice
@@ -24,6 +25,7 @@ import pickle
 import sys
 from PIL import Image, ImageDraw, ImageFont
 from easy_pil import *
+import pytz
 
 config_location = fileIO("config/config.json", "load")
 Shards = config_location["Shards"]
@@ -61,7 +63,7 @@ VS = 1.0
 @client.event
 async def on_ready():
   await client.change_presence(status=discord.Status.online, activity=discord.Game('Under construction'))
-  print('Bot is online')
+  print('Bot is online')#Shows bot is ready to go
   
 @client.command(aliases=["r"])
 @commands.is_owner()
@@ -103,6 +105,8 @@ for filename in os.listdir('./cogs'):
     if filename.endswith('.py'):
         client.load_extension(f'cogs.{filename[:-3]}')
 
+
+#Starting from here 
 @client.command()
 async def start(ctx):
     author = ctx.author
@@ -174,6 +178,7 @@ async def fight(ctx):
             if answer1.content == "{}fight".format(Prefix):
                 return
             if answer1.content == "y" or answer1.content == "Y" or answer1.content == "yes" or answer1.content == "Yes":
+                #need to insert the enemy side story.
                 info["selected_enemy"] = enemy
                 info["enemyhp"] = enemy_hp
                 fileIO("players/{}/info.json".format(author.id), "save", info)
@@ -765,28 +770,28 @@ async def _pick_class(ctx):
     if str(answer2.content) in values2:
         if answer2 == "{}start".format(Prefix):
             return
-        elif answer2.content == "archer" or answer2.content == "Archer":
+        elif answer2.content.lower() == "archer" or answer2.content == "Archer":
             info["class"] = "Archer"
             info["skills_learned"].append("Shoot")
             info["equip"] = "Simple Bow"
             fileIO("players/{}/info.json".format(author.id), "save", info)
             await ctx.send("All setup!")
             return
-        elif answer2.content == "paladin" or answer2.content == "Paladin":
+        elif answer2.content.lower() == "paladin" or answer2.content == "Paladin":
             info["class"] = "Paladin"
             info["skills_learned"].append("Swing")
             info["equip"] = "Simple Sword"
             fileIO("players/{}/info.json".format(author.id), "save", info)
             await ctx.send("All setup!")
             return
-        elif answer2.content == "mage" or answer2.content == "Mage":
+        elif answer2.content.lower() == "mage" or answer2.content == "Mage":
             info["class"] = "Mage"
             info["skills_learned"].append("Cast")
             info["equip"] = "Simple Staff"
             fileIO("players/{}/info.json".format(author.id), "save", info)
             await ctx.send("All setup!")
             return
-        elif answer2.content == "thief" or answer2.content == "Thief":
+        elif answer2.content.lower() == "thief" or answer2.content == "Thief":
             info["class"] = "Thief"
             info["skills_learned"].append("Stab")
             info["equip"] = "Simple Dagger"
@@ -819,7 +824,7 @@ async def _create_user(author):
             "wearing": "None",
             "defence": 0,
             "guild": "None",
-            "inguild": "None",
+            "inguild": False,
             "skills_learned": [],
             "inventory" : [],
             "equip": "None",
@@ -940,87 +945,93 @@ async def location(ctx,user: discord.Member = None):
             draw.text((706,450), text,(0,0,0,))
             map.save("profile.png")
             await ctx.send(file = discord.File("profile.png"))  
-    # if info["location"] == "Golden Temple":
-    #     pfp = pfp.resize((120,120))
+
+@client.command()
+async def create_guild(ctx):
+    channel = ctx.channel
+    author = ctx.author
+    message = ctx.message
+    await _create_user(author)
+    uinfo = fileIO("players/{}/info.json".format(author.id), "load")
+    if uinfo["race"] and uinfo["class"] == "None":
+        await ctx.send("Please start your character using `{}start`".format(Prefix))
+        return
+    match uinfo["inguild"]:
+        case True:
+            await ctx.send("You are already in a guild, you would need to leave your guild in order for you to create a guild.")
+            return
+        case False:
+            em = discord.Embed(description="What is the name that you want to call your guild with?")
+            await ctx.send(embed=em)
+            def pred(m):
+                return m.author == message.author and m.channel == message.channel
+            answer1 = await client.wait_for("message", check=pred)
+            if not os.path.exists("guilds/{}.json".format(answer1.content)):
+                timestamp = datetime.now()
+                new_guild = {
+                        "banner" : "",
+                        "date created" : timestamp.strftime(r"%d/%m/%Y - %I:%M %p"),
+                        "founder" : "",
+                        "funds" : "0",
+                        "guildleader" : author.id,
+                        "items" : "",
+                        "members" : "1",
+                        "name" : answer1.content,
+                        "profile" : "",
+                        "size" : "1",
+                        "visits" : 0
+                }
+                fileIO("guilds/{}.json".format(answer1.content),"save", new_guild)
+                uinfo["guild"] = str(answer1.content)
+                uinfo["inguild"] = True
+                uinfo = fileIO("players/{}/info.json".format(author.id), "save",uinfo)
+                await ctx.send(f"Guild {answer1.content} has been created.")
+                return
+            else: 
+                await ctx.send(f"A guild has already taken the name {answer1.content}.")
+                return   
+
+# @client.command()
+# async def time(ctx):
+#     de = pytz.timezone('Europe/London')
+#     await ctx.send(f"It is {datetime.datetime.now()}")
+# import os.path, time
+# print("Last modified: %s" % time.ctime(os.path.getmtime("test.txt")))
+# print("Created: %s" % time.ctime(os.path.getctime("test.txt")))
     
-    #     map.paste(pfp, ((195,170)))
-    #     map.save("profile.png")
-    #     draw = ImageDraw.Draw((map))
-    #     text = "You are here"
-    #     draw.text((317,131), text,(0,0,0,))
-    #     map.save("profile.png")
-    #     await ctx.send(file = discord.File("profile.png"))
-    # if info["location"] == "Saker Keep":
-    #     pfp = pfp.resize((120,120))
     
-    #     map.paste(pfp, ((585,205)))
-    #     map.save("profile.png")
-    #     draw = ImageDraw.Draw((map))
-    #     text = "You are here"
-    #     draw.text((682,205), text,(0,0,0,))
-    #     map.save("profile.png")
-    #     await ctx.send(file = discord.File("profile.png"))
-    # if info["location"] == "The Forest":
-    #     pfp = pfp.resize((120,120))
-    
-    #     map.paste(pfp, ((290,526)))
-    #     map.save("profile.png")
-    #     draw = ImageDraw.Draw((map))
-    #     text = "You are here"
-    #     draw.text((370,435), text,(0,0,0,))
-    #     map.save("profile.png")
-    #     await ctx.send(file = discord.File("profile.png"))
-    # if info["location"] == "Aquaris":
-    #     pfp = pfp.resize((120,120))
-    
-    #     map.paste(pfp, ((618,516)))
-    #     map.save("profile.png")
-    #     draw = ImageDraw.Draw((map))
-    #     text = "You are here"
-    #     draw.text((706,450), text,(0,0,0,))
-    #     map.save("profile.png")
-    #     await ctx.send(file = discord.File("profile.png"))          
-    # else: 
-    #     pfp = pfp.resize((320,320))
-    
-    #     map.paste(pfp, ((250,170)))
-    #     map.save("profile.png")
-    #     draw = ImageDraw.Draw((map))
-    #     text = "You are here"
-    #     draw.text((317,131), text,(0,0,0,))
-    #     map.save("profile.png")
-    #     await ctx.send(file = discord.File("profile.png"))
-        
-async def _create_guild():
-    if not os.path.exists("guilds/{}".format()):
-        os.makedirs("guilds/{}".format())
-        new_guild = {
-            
-            
-        }
 
 @client.command()
 async def guild(ctx,message = None,user: discord.Member = None):
     if user == None:
         user = ctx.author
+    uinfo = fileIO("players/{}/info.json".format(user.id), "load")
+    if uinfo["race"] and uinfo["class"] == "None":
+        await ctx.send("Please start your character using `{}start`".format(Prefix))
+        return
     if message == None:
-        uinfo = fileIO("players/{}/info.json".format(user.id), "load")
+        guild = uinfo["guild"]
         match uinfo["inguild"]:
-            case True: 
-                guild = uinfo["guild"]
+            case True:
                 info = fileIO("guilds/{}.json".format(guild) ,"load")
-
                 info["visits"] = info["visits"] + 1
                 fileIO("guilds/{}.json".format(guild), "save", info)
                 embed=discord.Embed(title=info["name"])
-                embed.add_field(name="GuildLeader",value = info["guildleader"],inline=False)
+                # if info["banner"] == "":
+                #     return
+                # else:
+                #     # link = info["banner"]
+                #     embed.thumbnail(url=)
+                e = info["guildleader"]
+                embed.add_field(name="GuildLeader",value = f"<@{e}>",inline=False)
                 embed.add_field(name="Members", value=info["members"], inline=True)
                 embed.add_field(name="Funds", value=info["funds"], inline=True)
                 if info["items"] == "":
                     embed.add_field(name="Items", value="Nothing", inline=True)
                 else:
                     embed.add_field(name="items",value=info["items"],inline=True)
-                embed.add_field(name="Visits", value=str(info["visits"]), inline=False)
+                embed.add_field(name="Visits", value=str(info["visits"]), inline=True)
+                embed.add_field(name="Date Created", value=info["date created"], inline=True)
                 await ctx.send(embed=embed)
             case False:
                 await ctx.send("You are not in a guild")
@@ -1028,35 +1039,81 @@ async def guild(ctx,message = None,user: discord.Member = None):
             
     else:
         info = fileIO("guilds/{}.json".format(message) ,"load")
-        await ctx.send(info["name"])
-            
         info["visits"] = info["visits"] + 1
         fileIO("guilds/{}.json".format(message), "save", info)
             
         embed=discord.Embed(title=info["name"])
-        embed.add_field(name="GuildLeader",value = info["guildleader"],inline=False)
+        e = info["guildleader"]
+        embed.add_field(name="GuildLeader",value = f"<@{e}>",inline=False)
         embed.add_field(name="Members", value=info["members"], inline=True)
         embed.add_field(name="Funds", value=info["funds"], inline=True)
-        if info["items"] == " ":
+        if info["items"] == "":
             embed.add_field(name="Items", value="Nothing", inline=True)
         else:
             embed.add_field(name="items",value=info["items"],inline=True)
-        embed.add_field(name="Visits", value=str(info["visits"]), inline=False)
+        embed.add_field(name="Visits", value=str(info["visits"]), inline=True)
+        embed.add_field(name="Date Created", value=info["date created"], inline=True)
         await ctx.send(embed=embed)
 
 @client.command(aliases=["guildsettings"])
 async def gs(ctx):
-    user = ctx.author
-    uinfo = fileIO("players/{}/info.json".format(user.id), "load")
+    channel = ctx.channel
+    author = ctx.author
+    message = ctx.message
+    uinfo = fileIO("players/{}/info.json".format(author.id), "load")
     guild = uinfo["guild"]
     info = fileIO("guilds/{}.json".format(guild) ,"load")
     match uinfo["inguild"]:
         case True:
-            if info["guildleader"] == str(user.id):
-                await ctx.send("You are the guild leader of your guild")
+            if info["guildleader"] == str(author.id) or info["guildleader"] == author.id:
+                # await ctx.send("You are the guild leader of your guild")
+                options = ["(0) GuildName","(1) GuildBanner","(2) Guildleader","(3) Visits"]
+                options2 = ["0","1","2","3"]
+                options3 = ["Yes","No"]
+                options4 = ["Yes","yes","No","no"]
+                em = discord.Embed(description="Guildleader <@{}> of {}\n```diff\n- Type the number on what you want to change.\n+ {}```only (3) Visits works so far".format(author.id,info["name"], "\n+ ".join(options)))
+                await ctx.send(embed=em)
+                
+                def pred(m):
+                    return m.author == message.author and m.channel == message.channel
+                answer1 = await client.wait_for("message", check=pred)
+                
+                if answer1.content in options2:
+                    if answer1.content == "0":
+                        await ctx.send("guildname")
+                    elif answer1.content == "1":
+                        await ctx.send("guildbanner")
+                    elif answer1.content == "2":
+                        await ctx.send("guildleader")
+                    elif answer1.content == "3":
+                        em = discord.Embed(description="<@{}>\n```diff\n- Do you wish to reset your guild visits back to 0.\n+ {}``` Note that this is case sensitive".format(author.id, "\n+ ".join(options3)))
+                        await ctx.send(embed=em)
+                        def pred(m):
+                            return m.author == message.author and m.channel == message.channel
+                        answer1 = await client.wait_for("message", check=pred)
+                        if answer1.content in options3:
+                            if answer1.content == "Yes":
+                                info["visits"] = 0
+                                fileIO("guilds/{}.json".format(guild), "save", info)
+                                await ctx.send("Your guild visits is reset to 0")
+                            elif answer1.content == "No":
+                                await ctx.send("Option cancelled")
+                                return
+                            else: 
+                                await ctx.send("Option cancelled")
+                                return
+                        else:
+                            await ctx.send("Option cancelled")
+                            return
+                else:   
+                    await ctx.send("Choose a number next to what you want to change next time.")
+                    return
+                
+                
                 
             else:
                 await ctx.send("You are not a guild leader of your guild")
+                return
         case False:
             await ctx.send("You are not in a guild")
             return
@@ -1104,42 +1161,22 @@ async def nstats(ctx,user: discord.Member = None):
     stats.save("stats template copy1.png")
     await ctx.send(file = discord.File("stats template copy1.png"))  
     
-       
-    
-            # "name": author.name,
-            # "race": "None",xxzxz
-            # "class": "None",
-            # "health": 100,
-            # "lvl": 1,
-            # "gold": 0,
             
-# @client.command()
-# async def challenge(ctx):
-#     author = ctx.author
-#     message = ctx.author
-#     info = fileIO("players/{}/info.json".format(author.id), "load")
-#     if info["class"] == "None" and info["race"] == "None":
-#         await ctx.send("Please start your player using `{}start`".format(Prefix))
-#         return
-#     def pred(m):
-#         return m.author == message.author and m.channel == message.channel
-#     answer2 = await client.wait_for("message", check=pred)
-#     response = ["Yes","yes","No","no"]
-#     match response[""]:
-#         case "Yes":
-#             await ctx.send("e")
-#         case "yes":
-#             await ctx.send("e")
-#         case "No":
-#             await ctx.send("e")
-#         case "no":
-#             await ctx.send("e")
+@client.command()
+async def challenge(ctx):
+    author = ctx.author
+    message = ctx.author
+    info = fileIO("players/{}/info.json".format(author.id), "load")
+    if info["class"] == "None" and info["race"] == "None":
+        await ctx.send("Please start your player using `{}start`".format(Prefix))
+        return
+    def pred(m):
+        return m.author == message.author and m.channel == message.channel
+    answer2 = await client.wait_for("message", check=pred)
+    values = ["y", "Y", "yes", "Yes", "n", "N", "no", "No"]
 
-    
 # keep_alive()
 client.run(config_location["Token"])
-# client.run('Nzc4MjgzNjYyNzQ2ODQ1MTg0.X7PvJQ.k9duIH-Qti9SXgt6w8nATA609dA') 
-#https://gist.githubusercontent.com/astronautlevel2/93a19379bd52b351dbc6eef269efa0bc/raw/18d55123bc85e2ef8f54e09007489ceff9b3ba51/langs.json
 
 # Goals:
 #Using flag1 or flag2 files to create a virtual experience of using playing a dungeon game but in discord sent by E Chewy bot
@@ -1148,3 +1185,19 @@ client.run(config_location["Token"])
 # ^ going to find a reference to how to do it and should be similar to how bots have a change prefix command.
 # 
 # An idea of when adding the pvp experience, that contrif the user who is currently their turn is away for 5 minutes will then lose the round and the win is given to the other user
+
+
+#Notes from testing phase:
+
+# Making commands case insensitive
+# Preventing non players from accessing the command unless an account is made for them
+#json security as from skim reading my code it is evident that it is very insecure in a way that wrong information passed in may ruin something
+#Reworking the nstats command and location- nstats meaning new stats card as a much better way of viewing your stats as something different from your average text based mmorpg games
+
+# Thank you for watching testing phase one video
+
+# I hope to make more notes from what I have learnt from this and make the changes. 
+
+# Ill be making another testing phase 2 video later 
+
+# see you next time

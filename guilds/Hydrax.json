@@ -1,10 +1,13 @@
 {
-    "Name" : "Hydrax" , 
-    "Banner" : "",
-    "Profile" : "",
-    "GuildLeader" : "212160821990522881",
-    "Date created" : "",
-    "Members" : "1",
-    "Funds" : "",
-    "Items" : ""
+    "banner" : "https://cdn.discordapp.com/attachments/781996079503376435/947475450303766549/904105196014161952.jpg",
+    "date created" : " 08/12/2021 - 8:10 PM",
+    "founder" : "",
+    "funds" : "0",
+    "guildleader" : "212160821990522881",
+    "items" : "",
+    "members" : "1",
+    "name" : "Hydrax",
+    "profile" : "",
+    "size" : "1",
+    "visits" : 0
 }
