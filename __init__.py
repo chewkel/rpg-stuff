@@ -1000,9 +1000,69 @@ async def _create_guild():
         }
 
 @client.command()
-async def guild(ctx):
-    info = fileIO("guilds/Hydrax.json" ,"load")
-    # await ctx.send(info["name"])
+async def guild(ctx,message = None,user: discord.Member = None):
+    if user == None:
+        user = ctx.author
+    if message == None:
+        uinfo = fileIO("players/{}/info.json".format(user.id), "load")
+        match uinfo["inguild"]:
+            case True: 
+                guild = uinfo["guild"]
+                info = fileIO("guilds/{}.json".format(guild) ,"load")
+
+                info["visits"] = info["visits"] + 1
+                fileIO("guilds/{}.json".format(guild), "save", info)
+                embed=discord.Embed(title=info["name"])
+                embed.add_field(name="GuildLeader",value = info["guildleader"],inline=False)
+                embed.add_field(name="Members", value=info["members"], inline=True)
+                embed.add_field(name="Funds", value=info["funds"], inline=True)
+                if info["items"] == "":
+                    embed.add_field(name="Items", value="Nothing", inline=True)
+                else:
+                    embed.add_field(name="items",value=info["items"],inline=True)
+                embed.add_field(name="Visits", value=str(info["visits"]), inline=False)
+                await ctx.send(embed=embed)
+            case False:
+                await ctx.send("You are not in a guild")
+                return
+            
+    else:
+        info = fileIO("guilds/{}.json".format(message) ,"load")
+        await ctx.send(info["name"])
+            
+        info["visits"] = info["visits"] + 1
+        fileIO("guilds/{}.json".format(message), "save", info)
+            
+        embed=discord.Embed(title=info["name"])
+        embed.add_field(name="GuildLeader",value = info["guildleader"],inline=False)
+        embed.add_field(name="Members", value=info["members"], inline=True)
+        embed.add_field(name="Funds", value=info["funds"], inline=True)
+        if info["items"] == " ":
+            embed.add_field(name="Items", value="Nothing", inline=True)
+        else:
+            embed.add_field(name="items",value=info["items"],inline=True)
+        embed.add_field(name="Visits", value=str(info["visits"]), inline=False)
+        await ctx.send(embed=embed)
+
+@client.command(aliases=["guildsettings"])
+async def gs(ctx):
+    user = ctx.author
+    uinfo = fileIO("players/{}/info.json".format(user.id), "load")
+    guild = uinfo["guild"]
+    info = fileIO("guilds/{}.json".format(guild) ,"load")
+    match uinfo["inguild"]:
+        case True:
+            if info["guildleader"] == str(user.id):
+                await ctx.send("You are the guild leader of your guild")
+                
+            else:
+                await ctx.send("You are not a guild leader of your guild")
+        case False:
+            await ctx.send("You are not in a guild")
+            return
+    
+
+            
     
 @client.command()
 async def nstats(ctx,user: discord.Member = None):
