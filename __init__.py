@@ -14,14 +14,9 @@ import time
 import threading
 from random import choice
 from copy import deepcopy
-# import googletrans
-# translator = googletrans.Translator()
 from dataIO import fileIO
 import asyncio
 import pickle
-# import googletrans
-# from googletrans import Translator
-# translator = googletrans.Translator()
 import sys
 from PIL import Image, ImageDraw, ImageFont
 from easy_pil import *
@@ -38,25 +33,6 @@ async def on_command(command):
 	info = fileIO("config/config.json", "load")
 	info["Commands_used"] = info["Commands_used"] + 1
 	fileIO("config/config.json", "save", info)
-
-# @client.event
-# async def on_reaction_add(reaction, user):
-#     # print("emoji-id")
-#     # print(reaction.emoji.id)
-#     if reaction.count == 1:
-#         #Japanese translation
-#         if reaction.emoji.id == 918833517889220639:
-#             translator = Translator()
-#             trans_en = translator.translate(reaction.message.content, src='en', dest='ja')
-#             await reaction.message.channel.send(trans_en.text)
-
-
-#         #English translation
-#         if reaction.emoji.id == 687336087408214062:
-#             translator = Translator()
-#             trans_en = translator.translate(reaction.message.content, src='ja', dest='en')
-#             await reaction.message.channel.send(trans_en.text)
-
 
 VS = 1.0
 
@@ -78,7 +54,6 @@ async def restart(ctx):
 async def info(ctx):
     info = fileIO("config/config.json", "load")
     em = discord.Embed(title="My info:", type="rich", description="1) Prefix: {}\n2) Name: {}\n3) User ID: {}\n4) Version: {}\n5) Shards: {}\n6) Total commands used: {}".format(Prefix, client.user.name, client.user.id, VS, Shards, info["Commands_used"]), color=discord.Color.blue())
-    # em.set_image(url="https://media.giphy.com/media/3og0IzI7ASX3mW5csg/giphy.gif")
     em.set_thumbnail(url=client.user.avatar_url)
     await ctx.send(embed=em)
 
@@ -106,7 +81,7 @@ for filename in os.listdir('./cogs'):
         client.load_extension(f'cogs.{filename[:-3]}')
 
 
-#Starting from here 
+#Start comamnd to create a user profile for the rpg game
 @client.command()
 async def start(ctx):
     author = ctx.author
@@ -138,7 +113,7 @@ async def start(ctx):
             await ctx.send("Next time choose one of the options.")
     else:
         await ctx.send("You're already setup.")
-
+#fight command
 @client.command()
 async def fight(ctx):
     author = ctx.author
@@ -294,7 +269,7 @@ async def fight(ctx):
                 fileIO("players/{}/info.json".format(author.id), "save", info)
         else:
             await ctx.send("Please choose one of the skills next time!")
-
+# shows your user's inventory
 @client.command()
 async def inv(ctx):
     author = ctx.author
@@ -306,7 +281,7 @@ async def inv(ctx):
         return
     em = discord.Embed(description="```diff\n!======== [{}'s Inventory] ========!\n\n!==== [Supplies] ====!\n+ Gold : {}\n+ Wood : {}\n+ Stone : {}\n+ Metal : {}\n\n!===== [Items] =====!\n+ Keys : {}\n+ Loot Bags : {}\n+ Minor HP Potions : {}\n+ {}```".format(info["name"], info["gold"], info["wood"], info["stone"], info["metal"], info["keys"], info["lootbag"], info["hp_potions"], "\n+ ".join(info["inventory"])), color=discord.Color.blue())
     await ctx.send(embed=em)
-
+#shows your user information
 @client.command()
 async def stats(ctx):
     author = ctx.author
@@ -465,7 +440,7 @@ async def travel(ctx):
         await ctx.send(embed=em)
     else:
         await ctx.send("Please choose a correct location next time.")
-
+#buy items 
 @client.command()
 async def buy(ctx):
     author = ctx.author
@@ -596,7 +571,7 @@ async def buy(ctx):
     else:
         em = discord.Embed(description="```diff\n- {}, please put a correct value next time.```".format(info["name"]), color=discord.Color.red())
         await ctx.send(embed=em)
-
+#heal by drinking health potions
 @client.command()
 async def heal(ctx):
     author = ctx.author
@@ -617,7 +592,7 @@ async def heal(ctx):
     else:
         em = discord.Embed(description="```diff\n- You don't have any health potions!```", color=discord.Color.red())
         await ctx.send(embed=em)
-
+#get daily amount of gold
 @client.command()
 async def daily(ctx):
     channel = ctx.channel
@@ -646,7 +621,7 @@ async def daily(ctx):
         h, m = divmod(m, 60)
         em = discord.Embed(description="```diff\n- You can't claim your daily reward yet!\n\n- Time left:\n- {} Hours, {} Minutes, and {} Seconds```".format(int(h), int(m), int(s)), color=discord.Color.red())
         await ctx.send(embed=em)
-
+#rest to gain some health back
 @client.command()
 async def rest(ctx):
     channel = ctx.channel
@@ -757,7 +732,7 @@ async def _check_levelup(ctx):
         return await _check_levelup(ctx)
     else:
         pass
-
+#function on what class you want to pick
 async def _pick_class(ctx):
     author = ctx.author
     message = ctx.message
@@ -802,6 +777,7 @@ async def _pick_class(ctx):
         await ctx.send("Next time choose one of the options.")
 
 async def _create_user(author):
+    # await _create_user(author)
     if not os.path.exists("players/{}".format(author.id)):
         os.makedirs("players/{}".format(author.id))
         new_account = {
@@ -851,51 +827,6 @@ async def _create_user(author):
         }
         fileIO("players/{}/info.json".format(author.id), "save", new_account)
     info = fileIO("players/{}/info.json".format(author.id), "load")
-
-class Place():
-    def __init__(self):
-        self.Description = ""
-        self.ID = self.North = self.East = self.South = self.West = self.Up = self.Down = 0
-        
-class Character():
-    def __init__(self):
-        self.Name = self.Description = ""
-        self.ID = self.CurrentLocation = 0
-
-class Item():
-  def __init__(self):
-    self.ID = self.Location = 0
-    self.Description = self.Status = self.Name = self.Commands = self.Results = ""
-
-# filename = "flag1" + ".gme"
-
-@client.command()
-async def poop(ctx):
-    try:
-        f = open("flag1.gme","rb")
-        NoOfCharacters = pickle.load(f)
-        for Count in range(NoOfCharacters):
-            TempCharacter = Character()
-            TempCharacter.ID = pickle.load(f)
-            TempCharacter.Name = pickle.load(f)
-            TempCharacter.Description = pickle.load(f)
-            TempCharacter.CurrentLocation = pickle.load(f)
-            p = (TempCharacter.Description)
-            await ctx.send(p)
-        NoOfPlaces = pickle.load(f)
-        return True
-    except:
-        return False
-
-#   @client.command()
-#   aysnc def cg(ctx):
-#       author = ctx.author
-#       message = ctx.message
-#
-#
-#
-#
-#
 
 @client.command()
 async def location(ctx,user: discord.Member = None):
@@ -991,6 +922,7 @@ async def create_guild(ctx):
                 await ctx.send(f"A guild has already taken the name {answer1.content}.")
                 return   
 
+# this was to find the time of when something was created to add to the when a guild was created
 # @client.command()
 # async def time(ctx):
 #     de = pytz.timezone('Europe/London')
@@ -1117,9 +1049,14 @@ async def gs(ctx):
         case False:
             await ctx.send("You are not in a guild")
             return
-    
 
-            
+
+'''
+sell command
+'''
+@client.command()
+async def sell():
+    pass
     
 @client.command()
 async def nstats(ctx,user: discord.Member = None):
@@ -1160,32 +1097,39 @@ async def nstats(ctx,user: discord.Member = None):
     draw.text((332,460),exp,(0,0,0),font=font)
     stats.save("stats template copy1.png")
     await ctx.send(file = discord.File("stats template copy1.png"))  
-    
-            
-@client.command()
-async def challenge(ctx):
-    author = ctx.author
-    message = ctx.author
-    info = fileIO("players/{}/info.json".format(author.id), "load")
-    if info["class"] == "None" and info["race"] == "None":
-        await ctx.send("Please start your player using `{}start`".format(Prefix))
-        return
-    def pred(m):
-        return m.author == message.author and m.channel == message.channel
-    answer2 = await client.wait_for("message", check=pred)
-    values = ["y", "Y", "yes", "Yes", "n", "N", "no", "No"]
+
+# @client.command()
+# async def challenge(ctx):
+#     author = ctx.author
+#     message = ctx.author
+#     info = fileIO("players/{}/info.json".format(author.id), "load")
+#     if info["class"] == "None" and info["race"] == "None":
+#         await ctx.send("Please start your player using `{}start`".format(Prefix))
+#         return
+#     def pred(m):
+#         return m.author == message.author and m.channel == message.channel
+#     answer2 = await client.wait_for("message", check=pred)
+#     values = ["y", "Y", "yes", "Yes", "n", "N", "no", "No"]
+#     if answer2.content in values:
+#         if answer2.content == "y" or answer2.content == "Y" or answer2.content == "yes" or answer2.content == "Yes":
+#             await ctx.send("Challenge accepted")
+#             info["challenge"] = "accepted"
+#             fileIO("players/{}/info.json".format(author.id), "save", info)
+#             return
+#         elif answer2.content == "n" or answer2.content == "N" or answer2.content == "no" or answer2.content == "No":
+#             await ctx.send("Challenge declined")
+#             info["challenge"] = "declined"
+#             fileIO("players/{}/info.json".format(author.id), "save", info)
+#             return
+#         else:
+#             await ctx.send("Challenge cancelled")
+#             return
+        
+#async def get_time():
+#    return datetime.datetime.now().strftime("%H:%M:%S")
 
 # keep_alive()
 client.run(config_location["Token"])
-
-# Goals:
-#Using flag1 or flag2 files to create a virtual experience of using playing a dungeon game but in discord sent by E Chewy bot
-#The ideas is that you say up,down,left,right to go places. 
-# Can be done via text or via emote reaction which is done through settings on which you prefer and is specific for each discord user
-# ^ going to find a reference to how to do it and should be similar to how bots have a change prefix command.
-# 
-# An idea of when adding the pvp experience, that contrif the user who is currently their turn is away for 5 minutes will then lose the round and the win is given to the other user
-
 
 #Notes from testing phase:
 
@@ -1201,3 +1145,5 @@ client.run(config_location["Token"])
 # Ill be making another testing phase 2 video later 
 
 # see you next time
+
+#take over the world
